@@ -29,10 +29,9 @@ app.get('/download/:id', async (req, res) => {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       },
-      timeout: 300000 // 5 minutes timeout
+      timeout: 300000
     });
     
-    // Forward important headers
     if (response.headers['content-type']) {
       res.setHeader('Content-Type', response.headers['content-type']);
     }
@@ -43,10 +42,7 @@ app.get('/download/:id', async (req, res) => {
       res.setHeader('Content-Disposition', response.headers['content-disposition']);
     }
     
-    // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
-    
-    // Stream the file directly
     response.data.pipe(res);
     
   } catch (error) {
@@ -65,14 +61,13 @@ app.get('/download/:id', async (req, res) => {
   }
 });
 
-// Alternative direct file ID endpoint (without /download/)
+// Alternative direct file ID endpoint
 app.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Check if this is an info request
     if (req.path.endsWith('/info')) {
-      return; // Let the /info handler handle it
+      return;
     }
     
     const url = `https://pixeldrain.com/api/file/${id}`;
@@ -142,9 +137,13 @@ app.options('*', (req, res) => {
   res.status(200).end();
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Pixeldrain Proxy Server running on port ${PORT}`);
-  console.log(`📥 Download endpoint: /download/:id or /:id`);
-  console.log(`ℹ️  Info endpoint: /:id/info`);
-});
+// Export for Vercel
+module.exports = app;
+
+// Local development
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Pixeldrain Proxy Server running on port ${PORT}`);
+  });
+}
